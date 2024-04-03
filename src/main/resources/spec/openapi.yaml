@@ -1,0 +1,208 @@
+openapi: 3.0.3
+info:
+  title: Matrixcodes API
+  description: API for generating and decoding various matrix codes, including barcodes and QR codes
+  version: 1.0.0
+externalDocs:
+  url: /docs
+  description: Find more info here
+servers:
+  - url: https://api.mmatokovic.dev/v1
+    description: local server
+paths:
+  /matrixcodes:
+    post:
+      summary: Creates a matrix code
+      operationId: createMatrixcode
+      requestBody:
+        $ref: '#/components/requestBodies/MatrixcodeBody'
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Matrixcode"
+            image/*:
+             schema: 
+               type: string
+               format: binary
+        default:
+          description: Unexpected error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /matrixcodes/{id}:
+    get:
+      summary: Returns a matrixcode by its ID
+      operationId: findMatrixcodeById
+      parameters:
+      - name: id
+        in: path
+        description: Id of a resource
+        required: true
+        schema:
+          type: string
+      - name: format
+        in: query
+        description: matrix code format qrcode
+        schema:
+          type: string
+          enum: [code128, pdf417, qrcode]
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Matrixcode"
+            image/*:
+             schema: 
+               type: string
+               format: binary
+        default:
+          description: Unexpected error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    patch:
+      summary: Update a matrix code
+      operationId: updateMatrixcode
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/MatrixcodeBody'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Matrixcode"
+        default:
+          description: Unexpected error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      summary: Deletes a matrixcode by its ID
+      operationId: deleteMatrixcode
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        204:
+          description: The resource was deleted successfully.
+        default:
+          description: Unexpected error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+components:
+  requestBodies:
+    MatrixcodeBody:
+      description: A JSON object containing pet information
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [data]
+            properties:
+              data:
+                type: string
+                example: Example
+                description: Data which will be displayed in matrix code.
+              size:
+                type: string
+                example: 200x400
+                description: Image size. Width x height.
+              format:
+                type: string
+                example: code128
+                description: Specifies matrix code format.
+              type:
+                type: string
+                default: gif
+                description: Image type.
+  schemas:
+    Matrixcode:
+      type: object
+      properties:
+        id:
+          type: integer
+        data:
+          type: string
+          example: Example
+          description: Data which will be displayed in matrix code.
+        url:
+          type: string
+          description: URL which will be used to fetch matrix code.
+        size:
+          type: string
+          example: 200x400
+          description: Image size. Width x height.
+        format:
+          type: string
+          example: code128
+          description: Specifies matrix code format.
+        type:
+          type: string
+          example: gif
+          description: Image type.
+        created_at:
+          type: string
+          format: date-time
+          example: 2022-04-26T15:39:57.360+02:00
+          description: Creation date.
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the problem type.  When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type
+            (e.g., using HTML).
+          default: 'about:blank'
+          example: 'https://zalando.github.io/problem/constraint-violation'
+        title:
+          type: string
+          description: |
+            A short, summary of the problem type. Written in english and readable
+            for engineers (usually not suited for non technical stakeholders and
+            not localized); example: Service Unavailable
+        status:
+          type: integer
+          format: int32
+          description: |
+            The HTTP status code generated by the origin server for this occurrence
+            of the problem.
+          minimum: 100
+          maximum: 600
+          exclusiveMaximum: true
+          example: 503
+        detail:
+          type: string
+          description: |
+            A human readable explanation specific to this occurrence of the
+            problem.
+          example: Connection to database timed out
+        instance:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereferenced.
