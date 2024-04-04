@@ -4,13 +4,15 @@ info:
   description: API for generating and decoding various matrix codes, including barcodes and QR codes
   version: 1.0.0
 externalDocs:
-  url: /docs
+  url: https://mmatokovic.dev/docs
   description: Find more info here
 servers:
   - url: https://api.mmatokovic.dev/v1
-    description: local server
+    description: Development server
 paths:
   /matrixcodes:
+    parameters:
+      - $ref: '#/components/parameters/x-flow-id'
     post:
       summary: Creates a matrix code
       operationId: createMatrixcode
@@ -19,97 +21,255 @@ paths:
       responses:
         201:
           description: Created
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Matrixcode"
             image/*:
-             schema: 
-               type: string
-               format: binary
-        default:
-          description: Unexpected error
-          content:
-            application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
-  /matrixcodes/{id}:
+                type: string
+                format: binary
+        400:
+          $ref: "#/components/responses/BadRequest"
+        406:
+          $ref: "#/components/responses/NotAcceptable"
+        422:
+          $ref: "#/components/responses/UnprocessableEntity"
+        429:
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Default"
     get:
-      summary: Returns a matrixcode by its ID
-      operationId: findMatrixcodeById
+      summary: Returns a list of matrix codes
+      operationId: listMatrixcodes
       parameters:
-      - name: id
-        in: path
-        description: Id of a resource
-        required: true
-        schema:
-          type: string
-      - name: format
-        in: query
-        description: matrix code format qrcode
-        schema:
-          type: string
-          enum: [code128, pdf417, qrcode]
+        - $ref: '#/components/parameters/format'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/fields'
+        - $ref: '#/components/parameters/sort'
       responses:
         200:
-          description: OK
+          description: OK - Success!
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Matrixcode"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Default"
+  /matrixcodes/{id}:
+    parameters:
+      - $ref: '#/components/parameters/x-flow-id'
+    get:
+      summary: Returns a matrix code by its ID
+      operationId: findMatrixcodeById
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/format'
+        - $ref: '#/components/parameters/fields'
+      responses:
+        200:
+          description: OK - Success!
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Matrixcode"
             image/*:
-             schema: 
-               type: string
-               format: binary
-        default:
-          description: Unexpected error
-          content:
-            application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                type: string
+                format: binary
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        406:
+          $ref: "#/components/responses/NotAcceptable"
+        default:
+          $ref: "#/components/responses/Default"
     patch:
-      summary: Update a matrix code
+      summary: Update a matrix code by its ID
       operationId: updateMatrixcode
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/id'
       requestBody:
         $ref: '#/components/requestBodies/MatrixcodeBody'
       responses:
-        200:
-          description: Ok
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Matrixcode"
+        204:
+          $ref: "#/components/responses/NoContent"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        422:
+          $ref: "#/components/responses/UnprocessableEntity"
+        429:
+          $ref: "#/components/responses/TooManyRequests"
         default:
-          description: Unexpected error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Default"
     delete:
-      summary: Deletes a matrixcode by its ID
+      summary: Deletes a matrix code by its ID
       operationId: deleteMatrixcode
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
+        - $ref: '#/components/parameters/id'
       responses:
         204:
-          description: The resource was deleted successfully.
+          $ref: "#/components/responses/NoContent"
+        429:
+          $ref: "#/components/responses/TooManyRequests"
         default:
-          description: Unexpected error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Default"
 components:
+  responses:
+    NoContent:
+      description: No Content - Success, no data to return.
+    BadRequest:
+      description: Bad Request - Incorrect parameter values or syntax error in JSON.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: Not found - The URI is invalid or the resource requested does not exist.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotAcceptable:
+      description: Not Acceptable - URI is known but does not accept generating content with content-types that are not listed in the Accept header sent in the request
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    UnprocessableEntity:
+      description: Unprocessable Entity - Semantic error in provided data.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    TooManyRequests:
+      description: Too Many Requests - Rate Limit Exceeded
+      headers:
+        X-Flow-Id:
+          $ref: '#/components/headers/X-Flow-ID'
+        Retry-After:
+          $ref: '#/components/headers/Retry-After'
+        X-Rate-Limit:
+          $ref: '#/components/headers/X-Rate-Limit'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Default:
+      description: Unexpected error - An error object with 500 status code and default error message.
+      headers:
+        X-Flow-ID:
+          $ref: '#/components/headers/X-Flow-ID'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  headers:
+    X-Flow-ID:
+      description: |-
+        The **X-Flow-ID** is a custom header containing a unique flow identifier that
+        was be passed to any further request. It can be used to investigate request
+        related log entries end events.
+      schema:
+        type: string
+        format: uuid
+        example: bf48ba35-149d-4b76-8ac9-d08d126b517f
+    Retry-After:
+      description: Specifies how long you must wait before making a new request, in seconds
+      schema:
+        type: string
+    X-Rate-Limit:
+      description: Shows the limit for the operation that you are performing
+      schema:
+        type: string
+    Location:
+      description: The URL of the resource.
+      schema:
+        type: string
+        format: url
+        example: /matrixcode/bf48ba35-149d-4b76-8ac9-d08d126b517f
+  parameters:
+    x-flow-id:
+      name: X-Flow-Id
+      in: header
+      description: Used for troubleshooting.
+      required: false
+      schema:
+        type: string
+        format: uuid
+    id:
+      name: id
+      in: path
+      description: Id of a resource
+      required: true
+      schema:
+        type: string
+        format: uuid
+    data:
+      name: data
+      in: query
+      description: matrix code format
+      required: false
+      schema:
+        type: string
+        default: qrcode
+        enum: [code128, pdf417, qrcode]
+    format:
+      name: format
+      in: query
+      description: matrix code format
+      required: false
+      schema:
+        type: string
+        default: qrcode
+        enum: [code128, pdf417, qrcode]
+    fields:
+      name: fields
+      in: query
+      description: Comma separated field names to be included.
+      required: false
+      schema:
+        type: string
+    page:
+      name: 'page'
+      in: query
+      description: Pagination page number.
+      required: false
+      schema:
+        type: integer
+        default: 0
+    per_page:
+      name: 'per_page'
+      in: query
+      description: Limit the number of results (per page).
+      required: false
+      schema:
+        type: integer
+        default: 20
+        maximum: 100
+    sort:
+      name: sort
+      in: query
+      description: >-
+        Sorting fields separated by comma. Default order is Ascending (ASC),
+        minus(-) should be used in front of field name for Descending (DESC)
+        order.
+      required: false
+      schema:
+        type: string
+        default: -modified_at
   requestBodies:
     MatrixcodeBody:
       description: A JSON object containing pet information
@@ -122,15 +282,14 @@ components:
             properties:
               data:
                 type: string
-                example: Example
                 description: Data which will be displayed in matrix code.
               size:
                 type: string
-                example: 200x400
+                default: 200x200
                 description: Image size. Width x height.
               format:
                 type: string
-                example: code128
+                default: qrcode
                 description: Specifies matrix code format.
               type:
                 type: string
@@ -141,68 +300,80 @@ components:
       type: object
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
+          description: Unique identifier of an Matrixcode.
+          example: bf48ba35-149d-4b76-8ac9-d08d126b517f
         data:
-          type: string
-          example: Example
           description: Data which will be displayed in matrix code.
+          type: string
         url:
-          type: string
           description: URL which will be used to fetch matrix code.
+          type: string
+          format: url
+          example: https://api.mmatokovic.dev/v1/matrixcode/bf48ba35-149d-4b76-8ac9-d08d126b517f
         size:
-          type: string
-          example: 200x400
           description: Image size. Width x height.
+          type: string
+          default: 200x200
         format:
-          type: string
-          example: code128
           description: Specifies matrix code format.
-        type:
           type: string
-          example: gif
+          default: qrcode
+        type:
           description: Image type.
+          type: string
+          default: gif
         created_at:
+          description: Creation date.
           type: string
           format: date-time
-          example: 2022-04-26T15:39:57.360+02:00
-          description: Creation date.
+        modified_at:
+          description: The last modified timestamp.
+          type: string
+          format: date-time
     Problem:
       type: object
       properties:
         type:
           type: string
-          format: uri
-          description: |
-            An absolute URI that identifies the problem type.  When dereferenced,
-            it SHOULD provide human-readable documentation for the problem type
-            (e.g., using HTML).
+          format: uri-reference
+          description: >
+            A URI reference that uniquely identifies the problem type only in the
+            context of the provided API. Opposed to the specification in RFC-9457,
+            it is neither recommended to be dereferenceable and point to a
+            human-readable documentation nor globally unique for the problem type.
           default: 'about:blank'
-          example: 'https://zalando.github.io/problem/constraint-violation'
+          example: '/some/uri-reference'
         title:
           type: string
-          description: |
-            A short, summary of the problem type. Written in english and readable
-            for engineers (usually not suited for non technical stakeholders and
-            not localized); example: Service Unavailable
+          description: >
+            A short summary of the problem type. Written in English and readable
+            for engineers, usually not suited for non technical stakeholders and
+            not localized.
+          example: some title for the error situation
         status:
           type: integer
           format: int32
-          description: |
+          description: >
             The HTTP status code generated by the origin server for this occurrence
             of the problem.
           minimum: 100
           maximum: 600
           exclusiveMaximum: true
-          example: 503
         detail:
           type: string
-          description: |
+          description: >
             A human readable explanation specific to this occurrence of the
-            problem.
-          example: Connection to database timed out
+            problem that is helpful to locate the problem and give advice on how
+            to proceed. Written in English and readable for engineers, usually not
+            suited for non technical stakeholders and not localized.
+          example: some description for the error situation
         instance:
           type: string
-          format: uri
-          description: |
-            An absolute URI that identifies the specific occurrence of the problem.
-            It may or may not yield further information if dereferenced.
+          format: uri-reference
+          description: >
+            A URI reference that identifies the specific occurrence of the problem,
+            e.g. by adding a fragment identifier or sub-path to the problem type.
+            May be used to locate the root of this problem in the source code.
+          example: '/some/uri-reference#specific-occurrence-context'
