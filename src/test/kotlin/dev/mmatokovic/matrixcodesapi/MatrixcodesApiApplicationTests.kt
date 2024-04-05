@@ -1,5 +1,7 @@
 package dev.mmatokovic.matrixcodesapi
 
+import dev.mmatokovic.matrixcodesapi.matrixcode.Matrixcode
+import dev.mmatokovic.matrixcodesapi.matrixcode.MatrixcodeRepository
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.runBlocking
@@ -10,12 +12,13 @@ import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
 class MatrixcodesApiApplicationTests (
-		@Autowired val matrixcodeRepository: MatrixcodeRepository){
+		@Autowired val matrixcodeRepository: MatrixcodeRepository
+){
 
 	@Test
 	fun contextLoads() {
 		runBlocking {
-			matrixcodeRepository.save (Matrixcode(null, "Example", null, null, null, null, null, null,))
+			matrixcodeRepository.save (Matrixcode(null, "Example", null, null, null, null, null))
 			val matrixcodes = matrixcodeRepository.findAll()
 
 			Assertions.assertNotNull(matrixcodes.last().id)

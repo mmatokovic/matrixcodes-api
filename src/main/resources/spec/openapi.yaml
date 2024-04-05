@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Matrixcodes API
-  description: API for generating and decoding various matrix codes, including barcodes and QR codes
+  description: JSON API for generating and decoding various matrix codes, including barcodes and QR codes
   version: 1.0.0
 externalDocs:
   url: https://mmatokovic.dev/docs
@@ -47,6 +47,8 @@ paths:
       operationId: listMatrixcodes
       parameters:
         - $ref: '#/components/parameters/format'
+        - $ref: '#/components/parameters/data'
+        - $ref: '#/components/parameters/type'
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/fields'
         - $ref: '#/components/parameters/sort'
@@ -178,7 +180,7 @@ components:
             $ref: '#/components/schemas/Problem'
   headers:
     X-Flow-ID:
-      description: |-
+      description: >
         The **X-Flow-ID** is a custom header containing a unique flow identifier that
         was be passed to any further request. It can be used to investigate request
         related log entries end events.
@@ -220,12 +222,15 @@ components:
     data:
       name: data
       in: query
-      description: matrix code format
-      required: false
+      description: Data which will be displayed in matrix code.
       schema:
         type: string
-        default: qrcode
-        enum: [code128, pdf417, qrcode]
+    type:
+      name: type
+      in: query
+      description: Image type.
+      schema:
+        type: string
     format:
       name: format
       in: query
@@ -243,15 +248,15 @@ components:
       schema:
         type: string
     page:
-      name: 'page'
+      name: page
       in: query
       description: Pagination page number.
       required: false
       schema:
         type: integer
         default: 0
-    per_page:
-      name: 'per_page'
+    limit:
+      name: limit
       in: query
       description: Limit the number of results (per page).
       required: false
@@ -262,7 +267,7 @@ components:
     sort:
       name: sort
       in: query
-      description: >-
+      description: >
         Sorting fields separated by comma. Default order is Ascending (ASC),
         minus(-) should be used in front of field name for Descending (DESC)
         order.
@@ -343,8 +348,8 @@ components:
             context of the provided API. Opposed to the specification in RFC-9457,
             it is neither recommended to be dereferenceable and point to a
             human-readable documentation nor globally unique for the problem type.
-          default: 'about:blank'
-          example: '/some/uri-reference'
+          default: about:blank
+          example: /some/uri-reference
         title:
           type: string
           description: >
@@ -376,4 +381,4 @@ components:
             A URI reference that identifies the specific occurrence of the problem,
             e.g. by adding a fragment identifier or sub-path to the problem type.
             May be used to locate the root of this problem in the source code.
-          example: '/some/uri-reference#specific-occurrence-context'
+          example: /some/uri-reference#specific-occurrence-context
