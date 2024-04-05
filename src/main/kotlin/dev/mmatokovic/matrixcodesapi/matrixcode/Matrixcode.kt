@@ -8,7 +8,7 @@ import java.sql.Timestamp
 import java.util.*
 
 @Table("matrixcode")
-data class  Matrixcode(
+data class Matrixcode(
     @Id
     val id: UUID? = null,
     val data: String,
