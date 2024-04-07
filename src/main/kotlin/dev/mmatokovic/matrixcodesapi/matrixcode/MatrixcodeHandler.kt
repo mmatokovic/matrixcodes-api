@@ -40,8 +40,8 @@ class MatrixcodeHandler(
 
     suspend fun deleteMatrixcode(request: ServerRequest): ServerResponse {
         val matrixcodeId = request.pathVariable("id")
-        return matrixcodeService.deleteMatrixcode(matrixcodeId)?.let{
+        return matrixcodeService.deleteMatrixcode(matrixcodeId).let{
             noContent().buildAndAwait()
-        } ?: notFound().buildAndAwait()
+        } //TODO ?: notFound().buildAndAwait()
     }
 }
