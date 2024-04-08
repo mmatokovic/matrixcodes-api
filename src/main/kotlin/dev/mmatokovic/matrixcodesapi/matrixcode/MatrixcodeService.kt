@@ -67,6 +67,11 @@ class MatrixcodeService(
     }
 
 
-    suspend fun deleteMatrixcode(id: String) =
-        matrixcodeRepository.deleteById(UUID.fromString(id))
+    suspend fun deleteMatrixcode(id: String): Matrixcode? {
+        val existingMatrixcode = matrixcodeRepository.findById(UUID.fromString(id))
+        if (existingMatrixcode != null) {
+            matrixcodeRepository.deleteById(UUID.fromString(id))
+        }
+        return null
+    }
 }
