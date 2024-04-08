@@ -5,6 +5,7 @@ Matrix Codes API is a versatile Reactive REST API for generating and decoding va
 Built using Java 21 and the [Spring 3.2.4](https://spring.io/) using [Kotlin lang](https://kotlinlang.org/) TDD and leveraging:
 - [ZXing library](https://github.com/zxing/zxing) 
 - [OpenAPI specification](https://swagger.io/resources/open-api/)
+- [atlassian/swagger-request-validator-core](https://bitbucket.org/atlassian/swagger-request-validator)
 - [zalando/problem-spring-web library](https://github.com/zalando/problem-spring-web)
 - [API design guidelines](https://opensource.zalando.com/restful-api-guidelines/)
 
