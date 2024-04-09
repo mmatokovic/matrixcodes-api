@@ -12,14 +12,14 @@ class RouterConfiguration {
 
     @FlowPreview
     @Bean
-    fun mainRouter(matrixcodeHandler: MatrixcodeHandler) = coRouter {
+    fun mainRouter(handler: MatrixcodeHandler) = coRouter {
         "/v1".nest{
             accept(MediaType.APPLICATION_JSON).nest {
-                GET("/matrixcode", matrixcodeHandler::listMatrixcodes)
-                POST("/matrixcode", matrixcodeHandler::createMatrixcode)
-                GET("/matrixcode/{id}", matrixcodeHandler::findMatrixcodeById)
-                PATCH("/matrixcode/{id}", matrixcodeHandler::updateMatrixcode)
-                DELETE("/matrixcode/{id}", matrixcodeHandler::deleteMatrixcode)
+                GET("/matrixcodes", handler::listMatrixcodes)
+                POST("/matrixcodes", handler::createMatrixcode)
+                GET("/matrixcodes/{id}", handler::findMatrixcodeById)
+                PATCH("/matrixcodes/{id}", handler::updateMatrixcode)
+                DELETE("/matrixcodes/{id}", handler::deleteMatrixcode)
             }
         }
     }

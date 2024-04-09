@@ -9,39 +9,42 @@ import java.net.URI
 
 @Component
 class MatrixcodeHandler(
-    private val matrixcodeService: MatrixcodeService) {
+    private val service: MatrixcodeService) {
 
     private val validator = MatrixcodeValidator("spec/openapi.yaml")
 
     suspend fun listMatrixcodes(request: ServerRequest): ServerResponse {
-        val matrixcodes: Flow<MatrixcodeResponse> = matrixcodeService.getMatrixcodes()
+        val matrixcodes: Flow<MatrixcodeResponse> = service.getMatrixcodes()
         return ok().contentType(APPLICATION_JSON).bodyAndAwait(matrixcodes)
     }
 
     suspend fun createMatrixcode(request: ServerRequest): ServerResponse {
-        validator.validate(request)
+        validator.validateAndAwait(request, request.awaitBody())
+
         val matrixcode = request.awaitBody<MatrixcodeRequest>()
-        val savedMatrixcode = matrixcodeService.saveMatrixcode(matrixcode)
+        val savedMatrixcode = service.saveMatrixcode(matrixcode)
         val location: URI = URI.create("/v1/matrixcode/${savedMatrixcode?.id}")
+
         return created(location).buildAndAwait()
     }
 
     suspend fun findMatrixcodeById(request: ServerRequest): ServerResponse {
         val matrixcodeId = request.pathVariable("id")
-        return matrixcodeService.getMatrixcode(matrixcodeId)?.let { ok().contentType(APPLICATION_JSON).bodyValueAndAwait(it) }
+        return service.getMatrixcode(matrixcodeId)?.let { ok().contentType(APPLICATION_JSON).bodyValueAndAwait(it) }
             ?: notFound().buildAndAwait()
     }
 
     suspend fun updateMatrixcode(request: ServerRequest): ServerResponse {
+        validator.validate(request, request.awaitBody())
         val matrixcodeId = request.pathVariable("id")
         val matrixcode = request.awaitBody<MatrixcodeRequest>()
-        return matrixcodeService.updateMatrixcode(matrixcodeId, matrixcode)?.let{ noContent().buildAndAwait() }
+        return service.updateMatrixcode(matrixcodeId, matrixcode)?.let{ noContent().buildAndAwait() }
             ?: notFound().buildAndAwait()
     }
 
     suspend fun deleteMatrixcode(request: ServerRequest): ServerResponse {
         val matrixcodeId = request.pathVariable("id")
-        return matrixcodeService.deleteMatrixcode(matrixcodeId)?.let{ noContent().buildAndAwait() }
+        return service.deleteMatrixcode(matrixcodeId)?.let{ noContent().buildAndAwait() }
             ?: notFound().buildAndAwait()
     }
 }

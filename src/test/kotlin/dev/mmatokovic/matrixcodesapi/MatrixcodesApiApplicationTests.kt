@@ -12,8 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
 class MatrixcodesApiApplicationTests (
-		@Autowired val matrixcodeRepository: MatrixcodeRepository
-){
+	@Autowired val matrixcodeRepository: MatrixcodeRepository){
 
 	@Test
 	fun contextLoads() {

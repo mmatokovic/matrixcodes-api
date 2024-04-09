@@ -11,10 +11,10 @@ import java.util.*
 
 @Service
 class MatrixcodeService(
-    @Autowired val matrixcodeRepository: MatrixcodeRepository) {
+    @Autowired val repository: MatrixcodeRepository) {
 
     suspend fun getMatrixcodes(): Flow<MatrixcodeResponse> =
-        matrixcodeRepository.findAll().map { matrixcode ->
+        repository.findAll().map { matrixcode ->
             MatrixcodeResponse(
                 id = matrixcode.id,
                 data = matrixcode.data,
@@ -28,7 +28,7 @@ class MatrixcodeService(
         }
 
     suspend fun saveMatrixcode(matrixcode: MatrixcodeRequest): Matrixcode? =
-        matrixcodeRepository.save(
+        repository.save(
             Matrixcode(
                 data = matrixcode.data,
                 size = matrixcode.size,
@@ -38,7 +38,7 @@ class MatrixcodeService(
         )
 
     suspend fun getMatrixcode(id: String): MatrixcodeResponse? =
-        matrixcodeRepository.findById(UUID.fromString(id))?.let { matrixcode ->
+        repository.findById(UUID.fromString(id))?.let { matrixcode ->
             MatrixcodeResponse(
                 id = matrixcode.id,
                 data = matrixcode.data,
@@ -52,7 +52,7 @@ class MatrixcodeService(
         }
 
     suspend fun updateMatrixcode(id: String, matrixcode: MatrixcodeRequest): Matrixcode? {
-        val existingMatrixcode = matrixcodeRepository.findById(UUID.fromString(id))
+        val existingMatrixcode = repository.findById(UUID.fromString(id))
         if (existingMatrixcode != null) {
             val updatedMatrixcode = existingMatrixcode.copy(
                 data = matrixcode.data,
@@ -61,16 +61,16 @@ class MatrixcodeService(
                 type = matrixcode.type,
                 modifiedAt = Timestamp.valueOf(LocalDateTime.now())
             )
-            return matrixcodeRepository.save(updatedMatrixcode)
+            return repository.save(updatedMatrixcode)
         }
         return null
     }
 
 
     suspend fun deleteMatrixcode(id: String): Matrixcode? {
-        val existingMatrixcode = matrixcodeRepository.findById(UUID.fromString(id))
+        val existingMatrixcode = repository.findById(UUID.fromString(id))
         if (existingMatrixcode != null) {
-            matrixcodeRepository.deleteById(UUID.fromString(id))
+            repository.deleteById(UUID.fromString(id))
         }
         return null
     }
