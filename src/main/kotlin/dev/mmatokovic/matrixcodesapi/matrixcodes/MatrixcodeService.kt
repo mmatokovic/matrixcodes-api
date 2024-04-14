@@ -1,4 +1,4 @@
-package dev.mmatokovic.matrixcodesapi.matrixcode
+package dev.mmatokovic.matrixcodesapi.matrixcodes
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -18,7 +18,7 @@ class MatrixcodeService(
             MatrixcodeResponse(
                 id = matrixcode.id,
                 data = matrixcode.data,
-                url = URI.create("/v1/matrixcode/${matrixcode.id}"),
+                url = URI.create("/v1/matrixcodes/${matrixcode.id}"),
                 size = matrixcode.size,
                 format = matrixcode.format,
                 type = matrixcode.type,
@@ -66,12 +66,7 @@ class MatrixcodeService(
         return null
     }
 
-
-    suspend fun deleteMatrixcode(id: String): Matrixcode? {
-        val existingMatrixcode = repository.findById(UUID.fromString(id))
-        if (existingMatrixcode != null) {
-            repository.deleteById(UUID.fromString(id))
-        }
-        return null
-    }
+    suspend fun deleteMatrixcode(id: String): Matrixcode? =
+        repository.findById(UUID.fromString(id))
+            ?.also { repository.deleteById(UUID.fromString(id)) }
 }

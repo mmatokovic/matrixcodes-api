@@ -1,20 +1,25 @@
-package dev.mmatokovic.matrixcodesapi.matrixcode
+package dev.mmatokovic.matrixcodesapi.utils
 
 import com.atlassian.oai.validator.OpenApiInteractionValidator
 import com.atlassian.oai.validator.model.SimpleRequest
+import com.atlassian.oai.validator.report.LevelResolver
+import com.atlassian.oai.validator.report.ValidationReport
 import org.springframework.http.HttpStatus
-import org.springframework.http.ProblemDetail
-import org.springframework.web.ErrorResponseException
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.reactive.function.server.ServerResponse.status
+import org.springframework.web.reactive.function.server.bodyValueAndAwait
 import reactor.core.publisher.Mono
 
-class MatrixcodeValidator(specUrl: String) {
+internal class Validator<out T>(specUrl: String, private val errorHandler: ErrorHandler<T>) {
     private operator fun Regex.contains(text: CharSequence) = this.matches(text)
-    private val validator = OpenApiInteractionValidator
-        .createFor(specUrl)
-        .withBasePathOverride("/v1")
-        .build()
+
+    private val validator = OpenApiInteractionValidator.createFor(specUrl).withBasePathOverride("/v1").withLevelResolver(
+        LevelResolver.create()
+            .withLevel("validation.error.key", ValidationReport.Level.ERROR)
+            .build()
+    ).build()
 
     fun validate(request: ServerRequest, body: String? = null): Mono<ServerResponse>? {
         val builder = createSimpleRequestBuilder(request)
@@ -24,28 +29,26 @@ class MatrixcodeValidator(specUrl: String) {
         val report = validator.validateRequest(simpleRequest)
         return if (report.hasErrors()) {
             val status = status(report.messages[0].key)
-            val message = report.messages.firstOrNull()?.message ?: "Unknown error occurred"
-            val problemDetail = ProblemDetail.forStatusAndDetail(status, message)
-
-            throw ErrorResponseException(status, problemDetail, null)
+            val messages = report.messages.map { it.message }
+            val error = errorHandler(request, status, messages)
+            val e = BodyInserters.fromValue(error as Any)
+            status(status).body(e)
         } else null
     }
 
-    fun validateAndAwait(request: ServerRequest, body: String? = null) {
+    suspend fun validateAndAwait(request: ServerRequest, body: String? = null): ServerResponse? {
         val builder = createSimpleRequestBuilder(request)
         body?.let { builder.withBody(body) }
         val simpleRequest = builder.build()
 
         val report = validator.validateRequest(simpleRequest)
-        if (report.hasErrors()) {
+        return if (report.hasErrors()) {
             val status = status(report.messages[0].key)
-            val message = report.messages.firstOrNull()?.message ?: "Unknown error occurred"
-            val problemDetail = ProblemDetail.forStatusAndDetail(status, message)
-
-            throw ErrorResponseException(status, problemDetail, null)
-        }
+            val messages = report.messages.map { it.message }
+            val error = errorHandler(request, status, messages)
+            status(status).bodyValueAndAwait(error as Any)
+        } else null
     }
-
 
     private fun status(key: String) = when (key) {
         in Regex("validation.request.contentType.notAllowed") -> HttpStatus.UNSUPPORTED_MEDIA_TYPE
@@ -53,6 +56,7 @@ class MatrixcodeValidator(specUrl: String) {
         in Regex("validation.request.path.missing") -> HttpStatus.NOT_FOUND
         in Regex("validation.request.accept.invalid") -> HttpStatus.NOT_ACCEPTABLE
         in Regex("validation.request.operation.notAllowed") -> HttpStatus.METHOD_NOT_ALLOWED
+        // TODO map any other 40X cases above
         else -> HttpStatus.BAD_REQUEST
     }
 

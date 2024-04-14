@@ -1,4 +1,4 @@
-package dev.mmatokovic.matrixcodesapi.matrixcode
+package dev.mmatokovic.matrixcodesapi.matrixcodes
 
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.r2dbc.repository.Query

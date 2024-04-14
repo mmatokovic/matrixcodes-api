@@ -1,7 +1,7 @@
 package dev.mmatokovic.matrixcodesapi
 
-import dev.mmatokovic.matrixcodesapi.matrixcode.Matrixcode
-import dev.mmatokovic.matrixcodesapi.matrixcode.MatrixcodeRepository
+import dev.mmatokovic.matrixcodesapi.matrixcodes.Matrixcode
+import dev.mmatokovic.matrixcodesapi.matrixcodes.MatrixcodeRepository
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.runBlocking

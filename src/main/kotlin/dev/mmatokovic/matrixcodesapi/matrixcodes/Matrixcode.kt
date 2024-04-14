@@ -1,4 +1,4 @@
-package dev.mmatokovic.matrixcodesapi.matrixcode
+package dev.mmatokovic.matrixcodesapi.matrixcodes
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.data.annotation.CreatedDate
